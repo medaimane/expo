@@ -19,6 +19,9 @@ import expo.modules.updates.loader.LoaderTask.BackgroundUpdateStatus
 import expo.modules.updates.loader.LoaderTask.LoaderTaskCallback
 import expo.modules.updates.manifest.UpdateManifest
 import expo.modules.manifests.core.Manifest
+import expo.modules.updates.codesigning.CODE_SIGNING_METADATA_ALGORITHM_KEY
+import expo.modules.updates.codesigning.CODE_SIGNING_METADATA_KEY_ID_KEY
+import expo.modules.updates.codesigning.CodeSigningAlgorithm
 import expo.modules.updates.manifest.EmbeddedManifest
 import expo.modules.updates.selectionpolicy.LauncherSelectionPolicyFilterAware
 import expo.modules.updates.selectionpolicy.LoaderSelectionPolicyFilterAware
@@ -139,6 +142,16 @@ class ExpoUpdatesAppLoader @JvmOverloads constructor(
     }
     configMap[UpdatesConfiguration.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY] = requestHeaders
     configMap[UpdatesConfiguration.UPDATES_CONFIGURATION_EXPECTS_EXPO_SIGNED_MANIFEST] = true
+    if (!Constants.isStandaloneApp()) {
+      // in Expo Go, embed the Expo Root Certificate and get the Expo Go intermediate certificate and development certificates from the multipart manifest response part
+      configMap[UpdatesConfiguration.UPDATES_CONFIGURATION_CODE_SIGNING_CERTIFICATE] = "-----BEGIN CERTIFICATE-----\nMIID3jCCAsagAwIBAgIJTqHHkUIQH2SCMA0GCSqGSIb3DQEBCwUAMIGbMR4wHAYD\nVQQDExVFeHBvIFJvb3QgQ2VydGlmaWNhdGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQI\nEwpDYWxpZm9ybmlhMRIwEAYDVQQHEwlQYWxvIEFsdG8xDTALBgNVBAoTBEV4cG8x\nFDASBgNVBAsTC0VuZ2luZWVyaW5nMR4wHAYJKoZIhvcNAQkBEw9zZWN1cmVAZXhw\nby5kZXYwHhcNMjIwMjE1MTgwMDM3WhcNNDIwMjE1MTgwMDM3WjCBmzEeMBwGA1UE\nAxMVRXhwbyBSb290IENlcnRpZmljYXRlMQswCQYDVQQGEwJVUzETMBEGA1UECBMK\nQ2FsaWZvcm5pYTESMBAGA1UEBxMJUGFsbyBBbHRvMQ0wCwYDVQQKEwRFeHBvMRQw\nEgYDVQQLEwtFbmdpbmVlcmluZzEeMBwGCSqGSIb3DQEJARMPc2VjdXJlQGV4cG8u\nZGV2MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+BE/P2x7L9v6O8Bv\nl96IvrvShKxHKAMKDxt3haGdryFnMlLJu9SDq53oR+Ii7Dd2UFbKQoLgyf/b6+Dd\nUDCt5fffKKXBdaFe9FH2FBebbYn7AnPzqltRaYokopQrGypPYLW1Ri8LK4K505lI\neAzXUbVUn2dOIGZVu0XXWoUCts12Wi4eOenGg/4nh2PLM5ipkmn3cmLEvzexgM6F\nxwA6y1Liq3D7c7fAwFEE4Z7voY1WjvFviDgWXHLuPQzQESuaZg1QaxkwQcBGiqOO\nT7IieESjoOsfz6ZJePcxCpOhPEXQshIYsvtnvUlHsIHIgwAnRytgc7ySNRR7JxTx\nWqApgQIDAQABoyMwITAPBgNVHRMECDAGAQH/AgEBMA4GA1UdDwEB/wQEAwIBBjAN\nBgkqhkiG9w0BAQsFAAOCAQEAiRxLafwGvo6yZ8WJwSfEEE99dXJj1K7KP25uN1Eg\n/kk/h/8f9k5eVlFnMS3+6OqKSRoATOYNeSRlDAdAZkFV8z/s0KQ5kiPNBT+xkfef\nMovqUP0hdv4KDLlwp5+hymo8XzKtaA/fprCfBRtjrjA+wlGBEnpHYgTWgPXpRARe\nAhw1Ihr0k/SG4ASoEZ0mGWN8CYg5QVIkkwFD9gZb0fXxVLyLy9PJgDE0fcCO6PsW\nFuRIGWxiVGtBSgUzayd5bg7MjBo2mQ27gwJBq1LuUia9ksNU0peirg8cvbgojYX/\nYpOPrKmKhgRFGYZeuZIgr95NBix9hNNoE5M/PSdiMo35iQ==\n-----END CERTIFICATE-----"
+      configMap[UpdatesConfiguration.UPDATES_CONFIGURATION_CODE_SIGNING_METADATA] = mapOf(
+        CODE_SIGNING_METADATA_KEY_ID_KEY to "expo-root",
+        CODE_SIGNING_METADATA_ALGORITHM_KEY to CodeSigningAlgorithm.RSA_SHA256.algorithmName,
+      )
+      configMap[UpdatesConfiguration.UPDATES_CONFIGURATION_CODE_SIGNING_INCLUDE_MANIFEST_RESPONSE_CERTIFICATE_CHAIN] = true
+    }
+
     val configuration = UpdatesConfiguration(null, configMap)
     val sdkVersionsList = mutableListOf<String>().apply {
       (Constants.SDK_VERSIONS_LIST + listOf(RNObject.UNVERSIONED)).forEach {
